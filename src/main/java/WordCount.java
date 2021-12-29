@@ -1,5 +1,3 @@
-package dsp.hadoop.examples;
-
 import java.io.IOException;
 
 
@@ -54,7 +52,7 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, IntWrit
  
  public static void main(String[] args) throws Exception {
     Configuration conf = new Configuration();
-    Job job = Job.getInstance(conf, "word count");
+    Job job = new Job(conf, "word count");
     job.setJarByClass(WordCount.class);
     job.setMapperClass(MapperClass.class);
     job.setPartitionerClass(PartitionerClass.class);
