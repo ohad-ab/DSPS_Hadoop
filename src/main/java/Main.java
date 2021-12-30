@@ -68,7 +68,7 @@ public class Main {
                 .build();
 //                .placement(PlacementType.builder().region(Region.US_EAST_1).build()); //TODO: check if needed
         RunJobFlowRequest runFlowRequest = RunJobFlowRequest.builder()
-                .name("jobname2")
+                .name("jobname")
                 .releaseLabel("emr-5.34.0")
                 .instances(instances)
                 .steps(stepConfig)
@@ -78,7 +78,7 @@ public class Main {
                 .build();
         RunJobFlowResponse runJobFlowResult = mapReduce.runJobFlow(runFlowRequest);
         String jobFlowId = runJobFlowResult.jobFlowId();
-        System.out.println("Ran job flow with id: " + jobFlowId);
+        System.out.println("Run job flow with id: " + jobFlowId);
     }
     public static void ReadNgrams() throws IOException {
         Configuration conf = new Configuration();
