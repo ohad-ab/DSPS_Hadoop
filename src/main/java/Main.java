@@ -14,15 +14,35 @@ import software.amazon.awssdk.services.emr.model.*;
 
 import java.io.IOException;
 
+class currUser {
+    public String bucketName;
+    public String jarPath;
+
+    public currUser(String name){
+        if (name.equals("Ori")) {
+            this.bucketName = "oo-dspsp-ass2";
+            this.jarPath = "s3://oo-dspsp-ass2/WordCount.jar";
+        }
+        else{
+            this.bucketName = "dsps-221";
+            this.jarPath = "s3://dsps-221/WordCount.jar";
+        }
+    }
+}
 
 public class Main {
+    static currUser user = new currUser("Ori");
+    static String bucketName = user.bucketName;
+    static String jarPath = user.jarPath;
+
     public static AwsCredentialsProvider credentialsProvider = DefaultCredentialsProvider.create();
-    static String bucketName = "dsps-221";
+
+
     //        Link to Google hebrew 3-Grams in S3
     static String nGramsPath = "s3://datasets.elasticmapreduce/ngrams/books/20090715/heb-all/3gram/data";
 
     public static void main(String[] args){
-        FromTask("WordCount.jar");
+        FromTask(jarPath);
     }
 
     public static void FromTask(String jarPath){
@@ -30,11 +50,11 @@ public class Main {
         EmrClient mapReduce = EmrClient.builder().credentialsProvider(credentialsProvider).region(Region.US_EAST_1).build();
         HadoopJarStepConfig hadoopJarStep = HadoopJarStepConfig.builder()
                 .jar(jarPath)
-                .mainClass("some.pack.MainClass")
+                .mainClass("WordCount")
                 .args("s3n://"+bucketName+"/input/", "s3n://"+bucketName+"/output/")
                 .build();
         StepConfig stepConfig = StepConfig.builder()
-                .name("stepname")
+                .name("step_wordCount")
                 .hadoopJarStep(hadoopJarStep)
                 .actionOnFailure("TERMINATE_JOB_FLOW")
                 .build();
@@ -48,7 +68,7 @@ public class Main {
                 .build();
 //                .placement(PlacementType.builder().region(Region.US_EAST_1).build()); //TODO: check if needed
         RunJobFlowRequest runFlowRequest = RunJobFlowRequest.builder()
-                .name("jobname")
+                .name("jobname2")
                 .releaseLabel("emr-5.34.0")
                 .instances(instances)
                 .steps(stepConfig)
