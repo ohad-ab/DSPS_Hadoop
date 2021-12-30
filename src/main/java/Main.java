@@ -17,7 +17,7 @@ import java.io.IOException;
 
 public class Main {
     public static AwsCredentialsProvider credentialsProvider = DefaultCredentialsProvider.create();
-    static String bucketName = "oo-dspsp-ass2";
+    static String bucketName = "dsps-221";
     //        Link to Google hebrew 3-Grams in S3
     static String nGramsPath = "s3://datasets.elasticmapreduce/ngrams/books/20090715/heb-all/3gram/data";
 
@@ -27,7 +27,7 @@ public class Main {
 
     public static void FromTask(String jarPath){
 //        AWSCredentials credentials = new AWSCredentials;
-        EmrClient mapReduce = EmrClient.builder().region(Region.US_EAST_1).build();
+        EmrClient mapReduce = EmrClient.builder().credentialsProvider(credentialsProvider).region(Region.US_EAST_1).build();
         HadoopJarStepConfig hadoopJarStep = HadoopJarStepConfig.builder()
                 .jar(jarPath)
                 .mainClass("some.pack.MainClass")
@@ -43,12 +43,13 @@ public class Main {
 
                 .masterInstanceType("m4.large") //TODO: check what is the free one
                 .slaveInstanceType("m4.large")
-                .hadoopVersion("2.6.0").ec2KeyName("key1")
+                .hadoopVersion("2.6.0")//.ec2KeyName("key1")
                 .keepJobFlowAliveWhenNoSteps(false)
                 .build();
 //                .placement(PlacementType.builder().region(Region.US_EAST_1).build()); //TODO: check if needed
         RunJobFlowRequest runFlowRequest = RunJobFlowRequest.builder()
                 .name("jobname")
+                .releaseLabel("emr-5.34.0")
                 .instances(instances)
                 .steps(stepConfig)
                 .serviceRole("EMR_DefaultRole")
