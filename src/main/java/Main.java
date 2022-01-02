@@ -21,7 +21,8 @@ class currUser {
     public currUser(String name){
         if (name.equals("Ori")) {
             this.bucketName = "oo-dspsp-ass2";
-            this.jarPath = "s3://oo-dspsp-ass2/WordCount.jar";
+//            this.jarPath = "s3://oo-dspsp-ass2/WordCount.jar";
+            this.jarPath = "s3://oo-dspsp-ass2/NgramWordCount.jar";
         }
         else{
             this.bucketName = "dsps-221";
@@ -50,7 +51,7 @@ public class Main {
         EmrClient mapReduce = EmrClient.builder().credentialsProvider(credentialsProvider).region(Region.US_EAST_1).build();
         HadoopJarStepConfig hadoopJarStep = HadoopJarStepConfig.builder()
                 .jar(jarPath)
-                .mainClass("WordCount")
+                .mainClass("NgramWordCount")
                 .args("s3n://"+bucketName+"/input/", "s3n://"+bucketName+"/output/")
                 .build();
         StepConfig stepConfig = StepConfig.builder()
@@ -68,7 +69,7 @@ public class Main {
                 .build();
 //                .placement(PlacementType.builder().region(Region.US_EAST_1).build()); //TODO: check if needed
         RunJobFlowRequest runFlowRequest = RunJobFlowRequest.builder()
-                .name("jobname")
+                .name("3gram statistics")
                 .releaseLabel("emr-5.34.0")
                 .instances(instances)
                 .steps(stepConfig)

@@ -58,10 +58,13 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, IntWrit
     job.setPartitionerClass(PartitionerClass.class);
     job.setCombinerClass(ReducerClass.class);
     job.setReducerClass(ReducerClass.class);
+//    Map output
     job.setMapOutputKeyClass(Text.class);
     job.setMapOutputValueClass(IntWritable.class);
+//    Job output
     job.setOutputKeyClass(Text.class);
     job.setOutputValueClass(IntWritable.class);
+
     FileInputFormat.addInputPath(job, new Path(args[1]));
     FileOutputFormat.setOutputPath(job, new Path(args[2]));
     System.exit(job.waitForCompletion(true) ? 0 : 1);
