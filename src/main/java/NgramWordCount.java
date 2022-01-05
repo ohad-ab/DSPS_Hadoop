@@ -1,5 +1,6 @@
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.FloatWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
@@ -13,6 +14,8 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import java.io.IOException;
 import java.util.StringTokenizer;
 
+import static java.lang.Integer.parseInt;
+
 public class NgramWordCount {
  
 public static class MapperClass extends Mapper<LongWritable, Text, Text, IntWritable> {
@@ -23,30 +26,41 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, IntWrit
     public void map(LongWritable key, Text value, Context context) throws IOException,  InterruptedException {
       StringTokenizer itr = new StringTokenizer(value.toString(), "\n");
       while (itr.hasMoreTokens()) {
-          String entryWords = itr.nextToken().split("\t")[0];
+          String[] splittedEntry = itr.nextToken().split("\t");
+          String entryWords = splittedEntry[0];
+          IntWritable occ = new IntWritable(parseInt(splittedEntry[2]));
           Text w1 = new Text(entryWords.split(" ")[0]);
           Text w2 = new Text(entryWords.split(" ")[1]);
           Text w3 = new Text(entryWords.split(" ")[2]);
-          Text w1w2 = new Text(w1 + "_" + w2);
+          Text w1w2 = new Text(w1 + "_" + w2 + "_*");
           Text w2w3 = new Text(w2 + "_" + w3);
           Text w1w2w3 = new Text(w1 + "_" + w2 + "_" + w3);
-          context.write(w3, one);
-          context.write(w2w3, one);
-          context.write(w1w2w3, one);
-          context.write(w1w2, one);
-          context.write(w2, one);
+//          context.write(w3, occ);
+//          context.write(w2w3, occ);
+          context.write(w1w2w3, occ);
+          context.write(w1w2, occ);
       }
     }
   }
  
-  public static class ReducerClass extends Reducer<Text,IntWritable,Text,IntWritable> {
+  public static class ReducerClass extends Reducer<Text,IntWritable,Text,FloatWritable> {
+    int c2 = 0;
     @Override
     public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException,  InterruptedException {
-      int sum = 0;
+        int N3 = 0;
+        double k3;
       for (IntWritable value : values) {
-        sum += value.get();
+          N3 += value.get();
       }
-      context.write(key, new IntWritable(sum)); 
+//      String star = key.toString().substring(key.getLength()-1));
+//      System.out.println("This is: " + star);
+      System.out.println(key.toString().charAt(key.toString().length()-1));
+      if(key.toString().charAt(key.toString().length()-1) == '*')
+          c2 = N3;
+      else {
+          k3 = (Math.log(N3 +1)+1)/(Math.log(N3 +1)+2);
+          context.write(key, new FloatWritable((float)(k3  * N3 / c2)));
+      }
     }
   }
  
@@ -70,7 +84,7 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, IntWrit
     job.setMapOutputValueClass(IntWritable.class);
 //    Job output
     job.setOutputKeyClass(Text.class);
-    job.setOutputValueClass(IntWritable.class);
+    job.setOutputValueClass(FloatWritable.class);
 
     FileInputFormat.addInputPath(job, new Path(args[1]));
     FileOutputFormat.setOutputPath(job, new Path(args[2]));
