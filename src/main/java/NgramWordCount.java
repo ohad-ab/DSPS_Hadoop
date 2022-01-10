@@ -43,12 +43,12 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, IntWrit
     }
   }
  
-  public static class ReducerClass extends Reducer<Text,IntWritable,Text,FloatWritable> {
+  public static class ReducerClass extends Reducer<Text,IntWritable,Text,Text> {
     int c2 = 0;
     @Override
     public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException,  InterruptedException {
         int N3 = 0;
-        double k3;
+        Double k3;
       for (IntWritable value : values) {
           N3 += value.get();
       }
@@ -59,7 +59,9 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, IntWrit
           c2 = N3;
       else {
           k3 = (Math.log(N3 +1)+1)/(Math.log(N3 +1)+2);
-          context.write(key, new FloatWritable((float)(k3  * N3 / c2)));
+          Double val = k3  * N3 / c2;
+
+          context.write(key, new Text(val.toString()));
       }
     }
   }
@@ -77,14 +79,14 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, IntWrit
     job.setJarByClass(NgramWordCount.class);
     job.setMapperClass(MapperClass.class);
     job.setPartitionerClass(PartitionerClass.class);
-    job.setCombinerClass(ReducerClass.class);
+    //job.setCombinerClass(ReducerClass.class);
     job.setReducerClass(ReducerClass.class);
 //    Map output
     job.setMapOutputKeyClass(Text.class);
     job.setMapOutputValueClass(IntWritable.class);
 //    Job output
     job.setOutputKeyClass(Text.class);
-    job.setOutputValueClass(FloatWritable.class);
+    job.setOutputValueClass(Text.class);
 
     FileInputFormat.addInputPath(job, new Path(args[1]));
     FileOutputFormat.setOutputPath(job, new Path(args[2]));
