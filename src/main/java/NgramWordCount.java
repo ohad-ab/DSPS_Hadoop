@@ -10,6 +10,9 @@ import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
+import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import java.io.IOException;
 import java.util.StringTokenizer;
@@ -39,6 +42,7 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, IntWrit
 //          context.write(w2w3, occ);
           context.write(w1w2w3, occ);
           context.write(w1w2, occ);
+          context.write(new Text("c0"),one);
       }
     }
   }
@@ -48,28 +52,39 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, IntWrit
     @Override
     public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException,  InterruptedException {
         int N3 = 0;
+        Integer c0 = 0;
         Double k3;
-      for (IntWritable value : values) {
-          N3 += value.get();
-      }
+        if(key.toString().equals("c0")) {
+            for (IntWritable value : values) {
+                c0 = c0 + value.get();
+            }
+//            MultipleOutputs outputs =new MultipleOutputs<Text,Text>(context);
+//            outputs.write("c0", ,key,new Text(c0.toString()));
+            context.write(key,new Text(c0.toString()));
+        }
+        else {
+            for (IntWritable value : values) {
+                N3 += value.get();
+            }
 //      String star = key.toString().substring(key.getLength()-1));
 //      System.out.println("This is: " + star);
-      System.out.println(key.toString().charAt(key.toString().length()-1));
-      if(key.toString().charAt(key.toString().length()-1) == '*')
-          c2 = N3;
-      else {
-          k3 = (Math.log(N3 +1)+1)/(Math.log(N3 +1)+2);
-          Double val = k3  * N3 / c2;
-
-          context.write(key, new Text(val.toString()));
-      }
+            //System.out.println(key.toString().charAt(key.toString().length() - 1));
+            if (key.toString().charAt(key.toString().length() - 1) == '*')
+                c2 = N3;
+            else {
+                k3 = (Math.log(N3 + 1) + 1) / (Math.log(N3 + 1) + 2);
+                Double val = k3 * N3 / c2;
+                c0++;
+                context.write(key, new Text(val.toString()));
+            }
+        }
     }
   }
  
     public static class PartitionerClass extends Partitioner<Text, IntWritable> {
       @Override
       public int getPartition(Text key, IntWritable value, int numPartitions) {
-        return key.hashCode() % numPartitions;
+          return key.hashCode() % numPartitions;
       }    
     }
  
@@ -90,6 +105,7 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, IntWrit
 
     FileInputFormat.addInputPath(job, new Path(args[1]));
     FileOutputFormat.setOutputPath(job, new Path(args[2]));
+ //   MultipleOutputs.addNamedOutput(job,"c0", SequenceFileOutputFormat.class,Text.class,Text.class);
     System.exit(job.waitForCompletion(true) ? 0 : 1);
   }
  
