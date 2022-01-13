@@ -25,11 +25,11 @@ public class NgramWordCount {
 public static class MapperClass extends Mapper<LongWritable, Text, Text, IntWritable> {
     private final static IntWritable one = new IntWritable(1);
 //    private Text word = new Text();
-    
     @Override
     public void map(LongWritable key, Text value, Context context) throws IOException,  InterruptedException {
       StringTokenizer itr = new StringTokenizer(value.toString(), "\n");
-      while (itr.hasMoreTokens()) {
+        int c0 = 0;
+        while (itr.hasMoreTokens()) {
           String[] splittedEntry = itr.nextToken().split("\t");
           String entryWords = splittedEntry[0];
           IntWritable occ = new IntWritable(parseInt(splittedEntry[2]));
@@ -43,8 +43,9 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, IntWrit
 //          context.write(w2w3, occ);
           context.write(w1w2w3, occ);
           context.write(w1w2, occ);
-          context.write(new Text("c0"),one);
+          c0+=occ.get();
       }
+     context.write(new Text("c0"),new IntWritable(c0));
     }
   }
  
