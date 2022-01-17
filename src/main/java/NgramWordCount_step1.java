@@ -80,7 +80,7 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, IntWrit
                 k3 = (log2(N3 + 1) + 1) / (log2(N3 + 1) + 2);
                 double val = k3 * N3 / c2;
 //                c0++;
-                context.write(key, new Text(Double.toString(val)+"\t"+Double.toString(1-k3)));
+                context.write(key, new Text(Double.toString(val)+"\t"+Double.toString(k3)));
             }
         }
     }
