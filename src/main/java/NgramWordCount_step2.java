@@ -33,14 +33,14 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
             }
             else if (entryWords.charAt(entryWords.length() - 1) == '*'){
               context.write(new Text(entryWords), new Text(splittedEntry[1]));
+              String w2 = entryWords.split("_")[1];
+              context.write(new Text(w2 + "*"), new Text(splittedEntry[1]));
             }
             else{
               String[] words = entryWords.split("_");
-              String w2 = words[1];
               String w2w3 = words[1] + "_" + words[2];
               String w2w3w1w2w3 = w2w3 + "_" + entryWords;
               context.write(new Text(w2w3w1w2w3), new Text(splittedEntry[1] + "\t" + splittedEntry[2]));
-              context.write(new Text(w2 + "*"), new Text("1"));
             }
         }
     }
