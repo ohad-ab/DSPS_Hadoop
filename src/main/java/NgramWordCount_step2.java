@@ -36,11 +36,15 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
             }
             else{
               String[] words = entryWords.split("_");
+              String w1 = words[0];
               String w2 = words[1];
-              String w2w3 = words[1] + "_" + words[2];
+              String w3 = words[2];
+              String w2w3 = w2 + "_" + w3;
               String w2w3w1w2w3 = w2w3 + "_" + entryWords;
               context.write(new Text(w2w3w1w2w3), new Text(splittedEntry[1] + "\t" + splittedEntry[2]));
-              context.write(new Text(w2 + "*"), new Text("1"));
+              context.write(new Text(w1 + "*"), new Text(splittedEntry[3])); //w1 and occ
+              context.write(new Text(w2 + "*"), new Text(splittedEntry[3])); //w2 and occ
+              context.write(new Text(w3 + "*"), new Text(splittedEntry[3])); //w3 and occ
             }
         }
     }
@@ -51,7 +55,7 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
       {
           return (Math.log(x) / Math.log(2));
       }
-    int c2 = 0;
+      int c2 = 0;
       int C1 = 0;
       int N2 = 0;
 
@@ -67,7 +71,6 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
 //        Finds the C0 and saves it
         if (key.toString().equals("c0")){
             context.write(new Text("c0"), values.iterator().next());
-
         }
 //        Finds only W2* (ends with * but not contains _)
        else if (!key.toString().contains("_") && key.toString().charAt(key.toString().length() - 1) == '*') {
@@ -75,6 +78,7 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
             for (Text value : values) {
                 C1 += Integer.parseInt(value.toString());
             }
+            context.write(key, new Text(Integer.toString(C1)));
         }
         else if(key.toString().charAt(key.toString().length() - 1) == '*'){
             N2 = 0;

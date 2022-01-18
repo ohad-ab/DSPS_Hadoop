@@ -33,12 +33,13 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, IntWrit
           Text w2 = new Text(entryWords.split(" ")[1]);
           Text w3 = new Text(entryWords.split(" ")[2]);
           Text w1w2 = new Text(w1 + "_" + w2 + "_*");
-//          Text w2w3 = new Text(w2 + "_" + w3);
+          Text w2w3 = new Text(w2 + "_" + w3 + "_*");
           Text w1w2w3 = new Text(w1 + "_" + w2 + "_" + w3);
 //          context.write(w3, occ);
 //          context.write(w2w3, occ);
-          context.write(w1w2w3, occ);
-          context.write(w1w2, occ);
+          context.write(w1w2w3, occ); //N3
+          context.write(w1w2, occ); //C2
+          context.write(w2w3, occ); //Also for C2
           c0+=occ.get();
       }
      context.write(new Text("c0"),new IntWritable(c0));
@@ -80,7 +81,7 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, IntWrit
                 k3 = (log2(N3 + 1) + 1) / (log2(N3 + 1) + 2);
                 double val = k3 * N3 / c2;
 //                c0++;
-                context.write(key, new Text(Double.toString(val)+"\t"+Double.toString(k3)));
+                context.write(key, new Text(val +"\t"+ k3 +"\t"+ N3));
             }
         }
     }
