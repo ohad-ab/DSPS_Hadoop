@@ -11,12 +11,9 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import java.io.IOException;
-import java.sql.SQLOutput;
 import java.util.StringTokenizer;
 
-import static java.lang.Integer.parseInt;
-
-public class NgramWordCount_step2 {
+public class NgramWordCount_step3 {
 
 
 public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
@@ -36,15 +33,15 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
             }
             else{
               String[] words = entryWords.split("_");
-              String w1 = words[0];
+//              String w1 = words[0];
               String w2 = words[1];
               String w3 = words[2];
-              String w2w3 = w2 + "_" + w3;
-              String w2w3w1w2w3 = w2w3 + "_" + entryWords;
-              context.write(new Text(w2w3w1w2w3), new Text(splittedEntry[1] + "\t" + splittedEntry[2]));
-              context.write(new Text(w1 + "*"), new Text(splittedEntry[3])); //w1 and occ
-              context.write(new Text(w2 + "*"), new Text(splittedEntry[3])); //w2 and occ
-              context.write(new Text(w3 + "*"), new Text(splittedEntry[3])); //w3 and occ
+//              String w2w3 = w2 + "_" + w3;
+              String w3w1w2w3 = w3 + "_" + entryWords;
+              context.write(new Text(w3w1w2w3), new Text(splittedEntry[1] + "\t" + splittedEntry[2]+ "\t" + splittedEntry[3]));
+//              context.write(new Text(w1 + "*"), new Text(splittedEntry[3])); //w1 and occ
+//              context.write(new Text(w2 + "*"), new Text(splittedEntry[3])); //w2 and occ
+//              context.write(new Text(w3 + "*"), new Text(splittedEntry[3])); //w3 and occ
             }
         }
     }
@@ -55,54 +52,39 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
       {
           return (Math.log(x) / Math.log(2));
       }
-      int c2 = 0;
-      int C1 = 0;
-      int N2 = 0;
+      int C0 = 0;
+      int N1 = 0;
 
       @Override
     public void reduce(Text key, Iterable<Text> values, Context context) throws IOException,  InterruptedException {
-        int N3 = 0;
-        int C0 = 0;
-
         double currSum;
         double K2;
         double K3;
         double out;
 //        Finds the C0 and saves it
         if (key.toString().equals("c0")){
-            context.write(new Text("c0"), values.iterator().next());
+            C0 = Integer.parseInt(values.iterator().next().toString());
         }
 //        Finds only W2* (ends with * but not contains _)
-       else if (!key.toString().contains("_") && key.toString().charAt(key.toString().length() - 1) == '*') {
-           C1 = 0;
-            for (Text value : values) {
-                C1 += Integer.parseInt(value.toString());
-            }
-            context.write(key, new Text(Integer.toString(C1)));
-        }
-        else if(key.toString().charAt(key.toString().length() - 1) == '*'){
-            N2 = 0;
-            for (Text value : values) {
-                N2 += Integer.parseInt(value.toString());
-            }
+       else if (key.toString().charAt(key.toString().length() - 1) == '*') {
+            N1 = Integer.parseInt(values.iterator().next().toString());
         }
 
         else {
             String valuesStr = "";
             for (Text value : values) {
-//                valuesStr.concat(value.toString());
                 valuesStr += value.toString();
             }
              String[] spliitedValues = valuesStr.split("\t");
              currSum = Double.parseDouble(spliitedValues[0]);
              K3 = Double.parseDouble(spliitedValues[1]);
-             K2 = (log2(N2 + 1)+1) / (log2(N2 + 1)+2);
-             out = currSum + (1-K3) * K2 * N2/C1;
+             K2 = Double.parseDouble(spliitedValues[2]);
+             out = currSum + (1-K3) * (1-K2) * N1/C0;
              String[] splittedKey = key.toString().split("_");
 
 //             Origin key is w2w3w1w2w3, we want to write only w1w2w3
-             String w1w2w3 = splittedKey[2] + "_" + splittedKey[3] + "_" + splittedKey[4];
-             context.write(new Text(w1w2w3), new Text(out + "\t" + K3 + "\t" + K2));
+             String w1w2w3 = splittedKey[1] + "_" + splittedKey[2] + "_" + splittedKey[3];
+             context.write(new Text(w1w2w3), new Text(Double.toString(out)));
         }
     }
   }
@@ -117,7 +99,7 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
  public static void main(String[] args) throws Exception {
     Configuration conf = new Configuration();
     Job job = new Job(conf, "word count");
-    job.setJarByClass(NgramWordCount_step2.class);
+    job.setJarByClass(NgramWordCount_step3.class);
     job.setMapperClass(MapperClass.class);
     job.setPartitionerClass(PartitionerClass.class);
     //job.setCombinerClass(ReducerClass.class);
