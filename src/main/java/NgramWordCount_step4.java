@@ -1,8 +1,7 @@
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.*;
+import org.apache.hadoop.io.retry.RetryPolicies;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Partitioner;
@@ -22,9 +21,10 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
     @Override
     public void map(LongWritable key, Text value, Context context) throws IOException,  InterruptedException {
         StringTokenizer itr = new StringTokenizer(value.toString(), "\n");
+
         while (itr.hasMoreTokens()) {
             String[] splittedEntry = itr.nextToken().split("\t");
-            context.write(new Text(splittedEntry[0]), new Text(splittedEntry[1]));
+            context.write(new Text(splittedEntry[0] + "_" + splittedEntry[1]), new Text(""));
         }
     }
 }
@@ -39,7 +39,9 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
 
       @Override
     public void reduce(Text key, Iterable<Text> values, Context context) throws IOException,  InterruptedException {
-            context.write(key, new Text(values.iterator().next()));
+            String[] splittedKey = key.toString().split("_");
+            String w1w2w3 = splittedKey[0] + " " + splittedKey[1] + " " + splittedKey[2];
+            context.write(new Text(w1w2w3), new Text(splittedKey[3]));
 
     }
   }
@@ -50,12 +52,42 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
           return key.hashCode() % numPartitions;
       }    
     }
- 
+
+    private static class CompareProbs extends WritableComparator {
+        protected CompareProbs() {
+            super(Text.class, true);
+        }
+        @Override
+        public int compare(WritableComparable key1, WritableComparable key2) {
+            String[] splittedKey1 = key1.toString().split("_");
+            String key1_w1w2 = splittedKey1[0] + "_" + splittedKey1[1];
+            double prob1 = Double.parseDouble(splittedKey1[3]);
+
+            String[] splittedKey2 = key2.toString().split("_");
+            String key2_w1w2 = splittedKey2[0] + "_" + splittedKey2[1];
+            double prob2 = Double.parseDouble(splittedKey2[3]);
+
+//          Check if the first two words are equals
+//          If true: check the probability and set the highest probability to be first (-1)
+            if (key1_w1w2.equals(key2_w1w2)){
+                if(prob1 > prob2){
+                    return -1;
+                }
+                else
+                    return 1;
+            }
+//          If the first two words are not equal - do the normal comparison
+            return (key1_w1w2.compareTo(key2_w1w2));
+
+        }
+    }
+
  public static void main(String[] args) throws Exception {
     Configuration conf = new Configuration();
     Job job = new Job(conf, "word count");
     job.setJarByClass(NgramWordCount_step4.class);
     job.setMapperClass(MapperClass.class);
+    job.setSortComparatorClass(NgramWordCount_step4.CompareProbs.class);
     job.setPartitionerClass(PartitionerClass.class);
     //job.setCombinerClass(ReducerClass.class);
     job.setReducerClass(ReducerClass.class);
