@@ -11,7 +11,6 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import java.io.IOException;
-import java.sql.SQLOutput;
 import java.util.StringTokenizer;
 
 import static java.lang.Integer.parseInt;
@@ -106,8 +105,26 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
         }
     }
   }
- 
-    public static class PartitionerClass extends Partitioner<Text, Text> {
+
+    public static class CombinerClass extends Reducer<Text,Text,Text,Text> {
+
+        int Combined = 0;
+
+
+        @Override
+        public void reduce(Text key, Iterable<Text> values, Context context) throws IOException,  InterruptedException {
+//        Finds the C0 and saves it
+
+                Combined = 0;
+                for (Text value : values) {
+                    Combined += Integer.parseInt(value.toString());
+                }
+                context.write(key, new Text(Integer.toString(Combined)));
+
+        }
+}
+
+            public static class PartitionerClass extends Partitioner<Text, Text> {
       @Override
       public int getPartition(Text key, Text value, int numPartitions) {
           return key.hashCode() % numPartitions;
@@ -120,7 +137,8 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
     job.setJarByClass(NgramWordCount_step2.class);
     job.setMapperClass(MapperClass.class);
     job.setPartitionerClass(PartitionerClass.class);
-    //job.setCombinerClass(ReducerClass.class);
+     //    Combiner
+     job.setCombinerClass(NgramWordCount_step2.CombinerClass.class);
     job.setReducerClass(ReducerClass.class);
 //    Map output
     job.setMapOutputKeyClass(Text.class);

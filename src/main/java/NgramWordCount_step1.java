@@ -86,7 +86,28 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, IntWrit
         }
     }
   }
- 
+
+    public static class CombinerClass extends Reducer<Text,IntWritable, Text, IntWritable> {
+        @Override
+        public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException,  InterruptedException {
+            System.out.println("-------- someone used me!!!! ----------");
+            int N3 = 0;
+            int c0 = 0;
+            if(key.toString().equals("c0")) {
+                for (IntWritable value : values) {
+                    c0 = c0 + value.get();
+                }
+                context.write(key, new IntWritable(c0));
+            }
+            else {
+                for (IntWritable value : values) {
+                    N3 += value.get();
+                }
+                context.write(key,new IntWritable(N3));
+            }
+        }
+    }
+
     public static class PartitionerClass extends Partitioner<Text, IntWritable> {
       @Override
       public int getPartition(Text key, IntWritable value, int numPartitions) {
@@ -100,7 +121,8 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, IntWrit
     job.setJarByClass(NgramWordCount_step1.class);
     job.setMapperClass(MapperClass.class);
     job.setPartitionerClass(PartitionerClass.class);
-    //job.setCombinerClass(ReducerClass.class);
+//    Combiner
+    job.setCombinerClass(CombinerClass.class);
     job.setReducerClass(ReducerClass.class);
 //    Map output
     job.setMapOutputKeyClass(Text.class);
