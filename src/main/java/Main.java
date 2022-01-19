@@ -28,10 +28,10 @@ class currUser {
         else {
             this.bucketName = "dsps-221";
         }
-            this.step1JarPath = "s3://"+ bucketName +"/step1.jar";
-            this.step2JarPath = "s3://"+ bucketName +"/step2.jar";
-            this.step3JarPath = "s3://"+ bucketName +"/step3.jar";
-            this.step4JarPath = "s3://"+ bucketName +"/step4.jar";
+            this.step1JarPath = "s3://"+ bucketName +"/Step1.jar";
+            this.step2JarPath = "s3://"+ bucketName +"/Step2.jar";
+            this.step3JarPath = "s3://"+ bucketName +"/Step3.jar";
+            this.step4JarPath = "s3://"+ bucketName +"/Step4.jar";
     }
 }
 

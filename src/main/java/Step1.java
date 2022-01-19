@@ -8,6 +8,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import java.io.IOException;
@@ -123,6 +124,8 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, IntWrit
 //    Job output
     job.setOutputKeyClass(Text.class);
     job.setOutputValueClass(Text.class);
+
+    job.setInputFormatClass(SequenceFileInputFormat.class);
 
     FileInputFormat.addInputPath(job, new Path(args[1]));
     FileOutputFormat.setOutputPath(job, new Path(args[2]));
