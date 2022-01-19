@@ -108,19 +108,22 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
 
     public static class CombinerClass extends Reducer<Text,Text,Text,Text> {
 
-        int Combined = 0;
-
-
         @Override
         public void reduce(Text key, Iterable<Text> values, Context context) throws IOException,  InterruptedException {
 //        Finds the C0 and saves it
 
-                Combined = 0;
+//                Combined = 0;
+            if(key.toString().charAt(key.toString().length() - 1) == '*') {
+                int Combined = 0;
                 for (Text value : values) {
                     Combined += Integer.parseInt(value.toString());
                 }
                 context.write(key, new Text(Integer.toString(Combined)));
+            }
+            else{
+                context.write(key, values.iterator().next());
 
+            }
         }
 }
 
