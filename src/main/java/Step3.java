@@ -13,12 +13,11 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import java.io.IOException;
 import java.util.StringTokenizer;
 
-public class NgramWordCount_step3 {
+public class Step3 {
 
 
 public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
     private final static IntWritable one = new IntWritable(1);
-//    private Text word = new Text();
     @Override
     public void map(LongWritable key, Text value, Context context) throws IOException,  InterruptedException {
         StringTokenizer itr = new StringTokenizer(value.toString(), "\n");
@@ -33,15 +32,10 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
             }
             else{
               String[] words = entryWords.split("_");
-//              String w1 = words[0];
               String w2 = words[1];
               String w3 = words[2];
-//              String w2w3 = w2 + "_" + w3;
               String w3w1w2w3 = w3 + "_" + entryWords;
               context.write(new Text(w3w1w2w3), new Text(splittedEntry[1] + "\t" + splittedEntry[2]+ "\t" + splittedEntry[3]));
-//              context.write(new Text(w1 + "*"), new Text(splittedEntry[3])); //w1 and occ
-//              context.write(new Text(w2 + "*"), new Text(splittedEntry[3])); //w2 and occ
-//              context.write(new Text(w3 + "*"), new Text(splittedEntry[3])); //w3 and occ
             }
         }
     }
@@ -99,10 +93,9 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
  public static void main(String[] args) throws Exception {
     Configuration conf = new Configuration();
     Job job = new Job(conf, "word count");
-    job.setJarByClass(NgramWordCount_step3.class);
+    job.setJarByClass(Step3.class);
     job.setMapperClass(MapperClass.class);
     job.setPartitionerClass(PartitionerClass.class);
-    //job.setCombinerClass(ReducerClass.class);
     job.setReducerClass(ReducerClass.class);
 //    Map output
     job.setMapOutputKeyClass(Text.class);
@@ -113,7 +106,6 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
 
     FileInputFormat.addInputPath(job, new Path(args[1]));
     FileOutputFormat.setOutputPath(job, new Path(args[2]));
- //   MultipleOutputs.addNamedOutput(job,"c0", SequenceFileOutputFormat.class,Text.class,Text.class);
     System.exit(job.waitForCompletion(true) ? 0 : 1);
   }
  

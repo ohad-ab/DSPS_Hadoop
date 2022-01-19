@@ -1,7 +1,6 @@
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.*;
-import org.apache.hadoop.io.retry.RetryPolicies;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Partitioner;
@@ -12,12 +11,11 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import java.io.IOException;
 import java.util.StringTokenizer;
 
-public class NgramWordCount_step4 {
+public class Step4 {
 
 
 public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
     private final static IntWritable one = new IntWritable(1);
-//    private Text word = new Text();
     @Override
     public void map(LongWritable key, Text value, Context context) throws IOException,  InterruptedException {
         StringTokenizer itr = new StringTokenizer(value.toString(), "\n");
@@ -30,12 +28,6 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
 }
  
   public static class ReducerClass extends Reducer<Text,Text,Text,Text> {
-      public static double log2(int x)
-      {
-          return (Math.log(x) / Math.log(2));
-      }
-      int C0 = 0;
-      int N1 = 0;
 
       @Override
     public void reduce(Text key, Iterable<Text> values, Context context) throws IOException,  InterruptedException {
@@ -85,11 +77,10 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
  public static void main(String[] args) throws Exception {
     Configuration conf = new Configuration();
     Job job = new Job(conf, "word count");
-    job.setJarByClass(NgramWordCount_step4.class);
+    job.setJarByClass(Step4.class);
     job.setMapperClass(MapperClass.class);
-    job.setSortComparatorClass(NgramWordCount_step4.CompareProbs.class);
+    job.setSortComparatorClass(Step4.CompareProbs.class);
     job.setPartitionerClass(PartitionerClass.class);
-    //job.setCombinerClass(ReducerClass.class);
     job.setReducerClass(ReducerClass.class);
 //    Map output
     job.setMapOutputKeyClass(Text.class);
@@ -100,7 +91,6 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
 
     FileInputFormat.addInputPath(job, new Path(args[1]));
     FileOutputFormat.setOutputPath(job, new Path(args[2]));
- //   MultipleOutputs.addNamedOutput(job,"c0", SequenceFileOutputFormat.class,Text.class,Text.class);
     System.exit(job.waitForCompletion(true) ? 0 : 1);
   }
  

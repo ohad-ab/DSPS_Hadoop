@@ -15,12 +15,11 @@ import java.util.StringTokenizer;
 
 import static java.lang.Integer.parseInt;
 
-public class NgramWordCount_step2 {
+public class Step2 {
 
 
 public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
     private final static IntWritable one = new IntWritable(1);
-//    private Text word = new Text();
     @Override
     public void map(LongWritable key, Text value, Context context) throws IOException,  InterruptedException {
         StringTokenizer itr = new StringTokenizer(value.toString(), "\n");
@@ -54,15 +53,11 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
       {
           return (Math.log(x) / Math.log(2));
       }
-      int c2 = 0;
       int C1 = 0;
       int N2 = 0;
 
       @Override
     public void reduce(Text key, Iterable<Text> values, Context context) throws IOException,  InterruptedException {
-        int N3 = 0;
-        int C0 = 0;
-
         double currSum;
         double K2;
         double K3;
@@ -89,7 +84,6 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
         else {
             String valuesStr = "";
             for (Text value : values) {
-//                valuesStr.concat(value.toString());
                 valuesStr += value.toString();
             }
              String[] spliitedValues = valuesStr.split("\t");
@@ -111,8 +105,6 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
         @Override
         public void reduce(Text key, Iterable<Text> values, Context context) throws IOException,  InterruptedException {
 //        Finds the C0 and saves it
-
-//                Combined = 0;
             if(key.toString().charAt(key.toString().length() - 1) == '*') {
                 int Combined = 0;
                 for (Text value : values) {
@@ -137,11 +129,11 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
  public static void main(String[] args) throws Exception {
     Configuration conf = new Configuration();
     Job job = new Job(conf, "word count");
-    job.setJarByClass(NgramWordCount_step2.class);
+    job.setJarByClass(Step2.class);
     job.setMapperClass(MapperClass.class);
     job.setPartitionerClass(PartitionerClass.class);
-     //    Combiner
-     job.setCombinerClass(NgramWordCount_step2.CombinerClass.class);
+//    Combiner
+    job.setCombinerClass(Step2.CombinerClass.class);
     job.setReducerClass(ReducerClass.class);
 //    Map output
     job.setMapOutputKeyClass(Text.class);
@@ -152,7 +144,6 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
 
     FileInputFormat.addInputPath(job, new Path(args[1]));
     FileOutputFormat.setOutputPath(job, new Path(args[2]));
- //   MultipleOutputs.addNamedOutput(job,"c0", SequenceFileOutputFormat.class,Text.class,Text.class);
     System.exit(job.waitForCompletion(true) ? 0 : 1);
   }
  
