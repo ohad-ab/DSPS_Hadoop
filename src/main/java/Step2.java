@@ -22,31 +22,37 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
     private final static IntWritable one = new IntWritable(1);
     @Override
     public void map(LongWritable key, Text value, Context context) throws IOException,  InterruptedException {
-        StringTokenizer itr = new StringTokenizer(value.toString(), "\n");
-        while (itr.hasMoreTokens()) {
-            String[] splittedEntry = itr.nextToken().split("\t");
+//        For our tests
+//        StringTokenizer itr = new StringTokenizer(value.toString(), "\n");
+//        while (itr.hasMoreTokens()) {
+//            String[] splittedEntry = itr.nextToken().split("\t");
+            String[] splittedEntry = value.toString().split("\t");
             String entryWords = splittedEntry[0];
-            if (entryWords.equals("c0")){
+
+        if (entryWords.equals("c0")){
               context.write(new Text("c0"), new Text(splittedEntry[1]));
-            }
+        }
             else if (entryWords.charAt(entryWords.length() - 1) == '*'){
               context.write(new Text(entryWords), new Text(splittedEntry[1]));
             }
             else{
-              String[] words = entryWords.split("_");
-              String w1 = words[0];
-              String w2 = words[1];
-              String w3 = words[2];
-              String w2w3 = w2 + "_" + w3;
-              String w2w3w1w2w3 = w2w3 + "_" + entryWords;
-              context.write(new Text(w2w3w1w2w3), new Text(splittedEntry[1] + "\t" + splittedEntry[2]));
-              context.write(new Text(w1 + "*"), new Text(splittedEntry[3])); //w1 and occ
-              context.write(new Text(w2 + "*"), new Text(splittedEntry[3])); //w2 and occ
-              context.write(new Text(w3 + "*"), new Text(splittedEntry[3])); //w3 and occ
+                  String[] words = entryWords.split("_");
+//          Check if it's triple
+            if (words.length == 3) {
+                      String w1 = words[0];
+                      String w2 = words[1];
+                      String w3 = words[2];
+                      String w2w3 = w2 + "_" + w3;
+                      String w2w3w1w2w3 = w2w3 + "_" + entryWords;
+                      context.write(new Text(w2w3w1w2w3), new Text(splittedEntry[1] + "\t" + splittedEntry[2]));
+                      context.write(new Text(w1 + "*"), new Text(splittedEntry[3])); //w1 and occ
+                      context.write(new Text(w2 + "*"), new Text(splittedEntry[3])); //w2 and occ
+                      context.write(new Text(w3 + "*"), new Text(splittedEntry[3])); //w3 and occ
+              }
             }
-        }
     }
 }
+
  
   public static class ReducerClass extends Reducer<Text,Text,Text,Text> {
       public static double log2(int x)

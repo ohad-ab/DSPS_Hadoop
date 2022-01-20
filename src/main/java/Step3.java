@@ -70,15 +70,17 @@ public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
                 valuesStr += value.toString();
             }
              String[] spliitedValues = valuesStr.split("\t");
-             currSum = Double.parseDouble(spliitedValues[0]);
-             K3 = Double.parseDouble(spliitedValues[1]);
-             K2 = Double.parseDouble(spliitedValues[2]);
-             out = currSum + (1-K3) * (1-K2) * N1/C0;
-             String[] splittedKey = key.toString().split("_");
+            if (spliitedValues.length ==3) {
+                currSum = Double.parseDouble(spliitedValues[0]);
+                K3 = Double.parseDouble(spliitedValues[1]);
+                K2 = Double.parseDouble(spliitedValues[2]);
+                out = currSum + (1 - K3) * (1 - K2) * N1 / C0;
+                String[] splittedKey = key.toString().split("_");
 
 //             Origin key is w2w3w1w2w3, we want to write only w1w2w3
-             String w1w2w3 = splittedKey[1] + "_" + splittedKey[2] + "_" + splittedKey[3];
-             context.write(new Text(w1w2w3), new Text(Double.toString(out)));
+                String w1w2w3 = splittedKey[1] + "_" + splittedKey[2] + "_" + splittedKey[3];
+                context.write(new Text(w1w2w3), new Text(Double.toString(out)));
+            }
         }
     }
   }
