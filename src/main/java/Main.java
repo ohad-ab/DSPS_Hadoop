@@ -14,6 +14,8 @@ import software.amazon.awssdk.services.emr.model.*;
 
 import java.io.IOException;
 
+
+
 class currUser {
     public String bucketName;
     public String step1JarPath;
@@ -28,8 +30,8 @@ class currUser {
         else {
             this.bucketName = "dsps-221";
         }
-            this.step1JarPath = "s3://"+ bucketName +"/Step1.jar";
-            this.step2JarPath = "s3://"+ bucketName +"/Step2.jar";
+            this.step1JarPath = "s3://"+ bucketName +"/noCombiner/Step1.jar";
+            this.step2JarPath = "s3://"+ bucketName +"/noCombiner/Step2.jar";
             this.step3JarPath = "s3://"+ bucketName +"/Step3.jar";
             this.step4JarPath = "s3://"+ bucketName +"/Step4.jar";
     }
@@ -45,6 +47,10 @@ public class Main {
 
     public static AwsCredentialsProvider credentialsProvider = DefaultCredentialsProvider.create();
 
+//    ---------------------------------------------- Combiner??? ----------------------------------------------
+//    static String isCombiner = "/noCombiner";
+    static String isCombiner = "";
+
 
     //        Link to Google hebrew 3-Grams in S3
     static String nGramsPath = "s3://datasets.elasticmapreduce/ngrams/books/20090715/heb-all/3gram/data";
@@ -58,7 +64,7 @@ public class Main {
         HadoopJarStepConfig hadoopJarStep1 = HadoopJarStepConfig.builder()
                 .jar(step1JarPath)
                 .mainClass("Step1")
-                .args(nGramsPath, "s3n://" + bucketName + "/output1/")
+                .args(nGramsPath, "s3n://" + bucketName + isCombiner + "/output1/")
                 .build();
         StepConfig stepConfig1 = StepConfig.builder()
                 .name("step1")
@@ -70,7 +76,7 @@ public class Main {
         HadoopJarStepConfig hadoopJarStep2 = HadoopJarStepConfig.builder()
                 .jar(step2JarPath)
                 .mainClass("Step2")
-                .args("s3n://" + bucketName + "/output1/", "s3n://" + bucketName + "/output2/")
+                .args("s3n://" + bucketName + isCombiner +"/output1/", "s3n://" + bucketName + isCombiner + "/output2/")
                 .build();
         StepConfig stepConfig2 = StepConfig.builder()
                 .name("step2")
@@ -82,7 +88,7 @@ public class Main {
         HadoopJarStepConfig hadoopJarStep3 = HadoopJarStepConfig.builder()
                 .jar(step3JarPath)
                 .mainClass("Step3")
-                .args("s3n://" + bucketName + "/output2/", "s3n://" + bucketName + "/output3/")
+                .args("s3n://" + bucketName + isCombiner + "/output2/", "s3n://" + bucketName + isCombiner + "/output3/")
                 .build();
         StepConfig stepConfig3 = StepConfig.builder()
                 .name("step3")
@@ -94,7 +100,7 @@ public class Main {
         HadoopJarStepConfig hadoopJarStep4 = HadoopJarStepConfig.builder()
                 .jar(step4JarPath)
                 .mainClass("Step4")
-                .args("s3n://" + bucketName + "/output3/", "s3n://" + bucketName + "/output4/")
+                .args("s3n://" + bucketName + isCombiner + "/output3/", "s3n://" + bucketName + isCombiner + "/output4/")
                 .build();
         StepConfig stepConfig4 = StepConfig.builder()
                 .name("step4")
@@ -118,10 +124,12 @@ public class Main {
                 .steps(stepConfig1, stepConfig2, stepConfig3, stepConfig4)
                 .serviceRole("EMR_DefaultRole")
                 .jobFlowRole("EMR_EC2_DefaultRole")
-                .logUri("s3n://" + bucketName + "/logs/")
+                .logUri("s3n://" + bucketName + isCombiner + "/logs/")
                 .build();
         RunJobFlowResponse runJobFlowResult = mapReduce.runJobFlow(runFlowRequest);
         String jobFlowId = runJobFlowResult.jobFlowId();
         System.out.println("Run job flow with id: " + jobFlowId);
     }
+
+
 }
